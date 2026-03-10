@@ -844,6 +844,73 @@ type InternalLayoutLine = {
   width: number
 }
 
+function countPreparedLines(prepared: PreparedText, maxWidth: number): number {
+  const { widths, isSpace: isSp, breakableWidths } = prepared
+  if (widths.length === 0) return 0
+
+  let lineCount = 0
+  let lineW = 0
+  let hasContent = false
+
+  for (let i = 0; i < widths.length; i++) {
+    const w = widths[i]!
+
+    if (!hasContent) {
+      if (w > maxWidth && breakableWidths[i] !== null) {
+        const gWidths = breakableWidths[i]!
+        lineW = 0
+        for (let g = 0; g < gWidths.length; g++) {
+          const gw = gWidths[g]!
+          if (lineW > 0 && lineW + gw > maxWidth + lineFitEpsilon) {
+            lineCount++
+            lineW = gw
+          } else {
+            if (lineW === 0) lineCount++
+            lineW += gw
+          }
+        }
+      } else {
+        lineW = w
+        lineCount++
+      }
+      hasContent = true
+      continue
+    }
+
+    const newW = lineW + w
+
+    if (newW > maxWidth + lineFitEpsilon) {
+      if (isSp[i]) continue
+
+      if (w > maxWidth && breakableWidths[i] !== null) {
+        const gWidths = breakableWidths[i]!
+        lineW = 0
+        for (let g = 0; g < gWidths.length; g++) {
+          const gw = gWidths[g]!
+          if (lineW > 0 && lineW + gw > maxWidth + lineFitEpsilon) {
+            lineCount++
+            lineW = gw
+          } else {
+            if (lineW === 0) lineCount++
+            lineW += gw
+          }
+        }
+      } else {
+        lineCount++
+        lineW = w
+      }
+    } else {
+      lineW = newW
+    }
+  }
+
+  if (!hasContent) {
+    lineCount++
+  }
+
+  return lineCount
+}
+
 function walkPreparedLines(
   prepared: PreparedText,
   maxWidth: number,
@@ -973,7 +1040,10 @@ function walkPreparedLines(
 //   - Trailing whitespace hangs past the line edge (doesn't trigger breaks)
 //   - Segments wider than maxWidth are broken at grapheme boundaries
 export function layout(prepared: PreparedText, maxWidth: number, lineHeight: number): LayoutResult {
-  const lineCount = walkPreparedLines(prepared, maxWidth)
+  // Keep the resize hot path specialized. `layoutWithLines()` shares the same
+  // break semantics but also tracks line ranges; the extra bookkeeping is too
+  // expensive to pay on every hot-path `layout()` call.
+  const lineCount = countPreparedLines(prepared, maxWidth)
   return { lineCount, height: lineCount * lineHeight }
 }
 
