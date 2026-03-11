@@ -106,6 +106,7 @@ Pages:
 - `/demo.html` — manual line-placement demo built on `layoutWithLines()`
 - `/columns.html` — three-column userland reflow demo built from one line layout pass
 - `/contour.html` — variable-width contour demo built on `layoutNextLine()`
+- `/editorial.html` — anchored-shape editorial layout demo built from repeated `layoutNextLine()` calls
 - `/accuracy.html` — sweep across fonts, sizes, widths, i18n texts
 - `/benchmark.html` — performance comparison
 - `/bubbles.html` — bubble shrinkwrap demo

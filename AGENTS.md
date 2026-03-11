@@ -34,6 +34,7 @@ Internal notes for contributors and agents. Use `README.md` as the public source
 - `pages/demo.ts` — manual line-placement demo built on `layoutWithLines()`
 - `pages/columns.ts` — three-column userland reflow demo built from one `layoutWithLines()` result
 - `pages/contour.ts` — variable-width contour demo built by advancing with `layoutNextLine()`
+- `pages/editorial.ts` — anchored-shape editorial layout demo built from repeated `layoutNextLine()` calls
 
 ### Implementation notes
 
@@ -93,6 +94,7 @@ Internal notes for contributors and agents. Use `README.md` as the public source
 - Khmer anchor widths were exact in both Chrome and Safari, and a 9-sample Chrome sweep was exact. The full `step=10` sweep was slow enough to be annoying, so use `--samples=<n>` first unless you specifically need every width.
 - Japanese `羅生門` is now a checked-in canary. The first keep-worthy Japanese rule was semantic, not font-specific: kana iteration marks like `ゝ` / `ゞ` / `ヽ` / `ヾ` should be treated as CJK line-start-prohibited, even when `Intl.Segmenter` emits them as standalone word-like pieces.
 - A second Japanese prose corpus (`蜘蛛の糸`) is now checked in. It is exact at Chrome/Safari anchor widths, `8/9 exact` on the sampled Chrome sweep, and `56/61 exact` on Chrome `step=10`. Treat the recurring one-line positive field as a real Japanese edge-fit class, not source dirt.
+- If a CJK opening punctuation mark like `「` or `（` lands at the end of a larger CJK segment, carry that trailing opening-punctuation cluster forward onto the next CJK segment during preprocessing. Otherwise the browser can keep the punctuation with the next ideograph while our model leaves it stranded at line end.
 - Chinese prose (`祝福`) is now a checked-in long-form canary. It is exact at the Safari anchors and at Chrome `600 / 800`, but Chrome keeps a broader positive one-line field at narrow widths, with `PingFang SC` widening that field relative to `Songti SC`.
 - A second Chinese prose canary (`故鄉`) is now checked in. It keeps the same broad class: exact Safari anchors, exact Chrome `600 / 800`, and a narrower but still real positive field in Chrome, with a different `Songti SC` vs `PingFang SC` split.
 - The corpus diagnostics should derive our candidate lines from `layoutWithLines()`, not from a second local line-walker. That avoids SHY and future custom-break drift between the hot path and the diagnostic path.
@@ -115,7 +117,7 @@ Internal notes for contributors and agents. Use `README.md` as the public source
 ### TODO
 - TweetDeck-style 3 columns of the same text scrolling at the same time
 - Resize Old Man and the Sea
-- Push the contour + columns demos toward richer editorial layouts instead of isolated experiments
+- Push the contour + columns + editorial demos toward richer editorial layouts instead of isolated experiments
 - Revisit whitespace normalization only for the remaining NBSP / hard-space edge cases, not ordinary collapsible whitespace
 - Decide whether to add an explicit server canvas backend path now that `src/layout.ts` imports safely in non-DOM runtimes
 - Decide whether explicit hard line breaks / paragraph-aware layout belong in scope beyond the current `white-space: normal` collapsing model

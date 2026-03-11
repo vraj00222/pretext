@@ -218,6 +218,30 @@ function isEscapedQuoteClusterSegment(segment: string): boolean {
   return sawQuote
 }
 
+function splitTrailingForwardStickyCluster(text: string): { head: string, tail: string } | null {
+  const chars = Array.from(text)
+  let splitIndex = chars.length
+
+  while (splitIndex > 0) {
+    const ch = chars[splitIndex - 1]!
+    if (combiningMarkRe.test(ch)) {
+      splitIndex--
+      continue
+    }
+    if (kinsokuEnd.has(ch) || forwardStickyGlue.has(ch)) {
+      splitIndex--
+      continue
+    }
+    break
+  }
+
+  if (splitIndex <= 0 || splitIndex === chars.length) return null
+  return {
+    head: chars.slice(0, splitIndex).join(''),
+    tail: chars.slice(splitIndex).join(''),
+  }
+}
+
 function isRepeatedSingleCharRun(segment: string, ch: string): boolean {
   if (segment.length === 0) return false
   for (const part of segment) {
@@ -607,6 +631,33 @@ function mergeGlueConnectedTextRuns(segmentation: MergedSegmentation): MergedSeg
   }
 }
 
+function carryTrailingForwardStickyAcrossCJKBoundary(segmentation: MergedSegmentation): MergedSegmentation {
+  const texts = segmentation.texts.slice()
+  const isWordLike = segmentation.isWordLike.slice()
+  const kinds = segmentation.kinds.slice()
+  const starts = segmentation.starts.slice()
+
+  for (let i = 0; i < texts.length - 1; i++) {
+    if (kinds[i] !== 'text' || kinds[i + 1] !== 'text') continue
+    if (!isCJK(texts[i]!) || !isCJK(texts[i + 1]!)) continue
+
+    const split = splitTrailingForwardStickyCluster(texts[i]!)
+    if (split === null) continue
+
+    texts[i] = split.head
+    texts[i + 1] = split.tail + texts[i + 1]!
+    starts[i + 1] = starts[i]! + split.head.length
+  }
+
+  return {
+    len: texts.length,
+    texts,
+    isWordLike,
+    kinds,
+    starts,
+  }
+}
+
 
 function buildMergedSegmentation(normalized: string, profile: AnalysisProfile): MergedSegmentation {
   const wordSegmenter = getSharedWordSegmenter()
@@ -740,7 +791,9 @@ function buildMergedSegmentation(normalized: string, profile: AnalysisProfile): 
     kinds: mergedKinds,
     starts: mergedStarts,
   })
-  const withMergedUrls = splitTimeRangeRuns(mergeNumericRuns(mergeUrlQueryRuns(mergeUrlLikeRuns(compacted))))
+  const withMergedUrls = carryTrailingForwardStickyAcrossCJKBoundary(
+    splitTimeRangeRuns(mergeNumericRuns(mergeUrlQueryRuns(mergeUrlLikeRuns(compacted)))),
+  )
 
   for (let i = 0; i < withMergedUrls.len - 1; i++) {
     const split = splitLeadingSpaceAndMarks(withMergedUrls.texts[i]!)

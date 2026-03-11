@@ -271,6 +271,11 @@ describe('prepare invariants', () => {
     expect(prepared.segments).toEqual(['棄', 'てゝ', '行', 'く'])
   })
 
+  test('carries trailing cjk opening punctuation forward across segment boundaries', () => {
+    const prepared = prepareWithSegments('作者はさつき、「下人', FONT)
+    expect(prepared.segments).toEqual(['作', '者', 'は', 'さ', 'つ', 'き、', '「下', '人'])
+  })
+
   test('keeps em dashes breakable', () => {
     const prepared = prepareWithSegments('universe—so', FONT)
     expect(prepared.segments).toEqual(['universe', '—', 'so'])
