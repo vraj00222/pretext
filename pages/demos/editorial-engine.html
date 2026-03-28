@@ -13,13 +13,17 @@
     }
     body { font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif; }
 
-    #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; }
+    #stage { position: relative; width: 100vw; height: 100vh; overflow: hidden; touch-action: none; }
 
-    .line { position: absolute; white-space: pre; pointer-events: none; z-index: 1; color: #e8e4dc; }
+    .line {
+      position: absolute; white-space: pre; z-index: 1; color: #e8e4dc;
+      user-select: text; -webkit-user-select: text;
+    }
 
     .headline-line {
-      position: absolute; white-space: pre; pointer-events: none;
+      position: absolute; white-space: pre;
       font-weight: 700; color: #fff; letter-spacing: -0.5px; z-index: 2;
+      user-select: text; -webkit-user-select: text;
     }
 
     .drop-cap {
@@ -36,8 +40,9 @@
       border-left: 3px solid #6b5a3d; padding-left: 14px;
     }
     .pullquote-line {
-      position: absolute; white-space: pre; pointer-events: none;
+      position: absolute; white-space: pre;
       font-style: italic; color: #b8a070;
+      user-select: text; -webkit-user-select: text;
     }
 
     .hint {

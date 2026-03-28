@@ -465,6 +465,9 @@ function scheduleRender(): void {
 }
 
 stage.addEventListener('pointerdown', event => {
+  if (hitTestOrbs(st.orbs, event.clientX, event.clientY) !== -1) {
+    event.preventDefault()
+  }
   st.events.pointerDown = pointerSampleFromEvent(event)
   scheduleRender()
 })
@@ -748,6 +751,8 @@ function render(now: number): boolean {
     element.style.opacity = orb.paused ? '0.45' : '1'
   }
 
+  domCache.stage.style.userSelect = drag !== null ? 'none' : ''
+  domCache.stage.style.webkitUserSelect = drag !== null ? 'none' : ''
   document.body.style.cursor = cursorStyle
   return stillAnimating
 }
