@@ -1,0 +1,11 @@
+.git
+.github
+.cursor
+node_modules
+site
+dist
+coverage
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
