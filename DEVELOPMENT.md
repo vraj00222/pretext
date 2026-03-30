@@ -28,6 +28,20 @@ bun run gatsby-check         # slow detailed Gatsby diagnosis
 bun run gatsby-sweep         # coarse Gatsby width sweep
 ```
 
+## Optional Docker Workflow
+
+Use Docker when you want a reproducible static demo-site build and server without installing Bun locally:
+
+```sh
+docker compose up --build
+```
+
+The site is available at `http://localhost:8080`.
+
+Notes:
+- This container path builds and serves `site/` only.
+- Accuracy/corpus/benchmark checks still expect host-native browser automation, and Safari checks require macOS host tooling.
+
 Packaging notes:
 - The published package entrypoint is built into `dist/` and generated at package time; `dist/` stays gitignored.
 - Keep library-internal imports using `.js` specifiers inside `.ts` source so plain `tsc -p tsconfig.build.json` emits correct runtime JS and declarations.
